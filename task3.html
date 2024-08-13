@@ -1,0 +1,145 @@
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Кейс-задача №2</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 50px 10px;
+      }
+      * {
+        font-family: "Courier New", Courier, monospace;
+        font-weight: bold;
+        font-size: large;
+      }
+      main {
+        width: 100%;
+        overflow: hidden;
+      }
+      .slider {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-items: center;
+        justify-content: center;
+      }
+      .slider-images {
+        align-self: center;
+        display: flex;
+        flex-direction: row;
+        width: 500px;
+        align-items: center;
+        justify-items: center;
+        transition: transform 1s;
+        padding: 60px;
+      }
+      .slider-images img {
+        z-index: 1;
+        right: 0;
+        opacity: 0;
+        transition: opacity 1s, transform 1s;
+        width: 100%;
+        opacity: 0.3;
+        transform: scale(0.5);
+        box-shadow: 0 0 0 10px rgba(128, 179, 255, 1),
+          0 0 30px 25px rgba(128, 179, 255, 0.4);
+        border-radius: 5px;
+      }
+      .slider-images img.active {
+        transform: scale(1);
+        opacity: 1;
+      }
+      .next,
+      .prev {
+        width: 100px;
+        height: 100px;
+        align-self: center;
+        z-index: 2;
+        border: none;
+        background: #282828;
+        border-radius: 50%;
+        color: #fff;
+
+        transition: background-color 0.3s, box-shadow 0.3s;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+        margin: 0 50px;
+      }
+      .next:hover,
+      .prev:hover {
+        cursor: pointer;
+        background-color: #424242;
+        box-shadow: 0 8px 10px rgba(0, 0, 0, 0.5);
+      }
+      .slider-title {
+        position: absolute;
+        z-index: 3;
+        top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="slider">
+        <div class="slider-title">
+          Изображение <span id="active-number">1</span> из 5
+        </div>
+        <button id="prev" class="prev">назад</button>
+        <div id="slider-images" class="slider-images">
+          <img class="active" src="https://lipsum.app/id/1/1600x900" alt="" />
+          <img src="https://lipsum.app/id/2/1600x900" alt="" />
+          <img src="https://lipsum.app/id/3/1600x900" alt="" />
+          <img src="https://lipsum.app/id/4/1600x900" alt="" />
+          <img src="https://lipsum.app/id/5/1600x900" alt="" />
+        </div>
+        <button id="next" class="next">вперед</button>
+      </div>
+    </main>
+
+    <script type="text/javascript">
+      const sliderContainer = document.getElementById("slider-images");
+      const activeNumberEl = document.getElementById("active-number");
+      const sliderImages = sliderContainer.children;
+      const prev = document.getElementById("prev");
+      const next = document.getElementById("next");
+      let activeImgIndex = 0;
+
+      next.addEventListener("click", (e) => {
+        changeClick(true);
+      });
+
+      prev.addEventListener("click", (e) => {
+        changeClick(false);
+      });
+
+      function changeClick(isNext) {
+        const activeImg = sliderImages.item(activeImgIndex);
+        const imgWidht = activeImg.clientWidth;
+
+        activeImg.classList.remove("active");
+
+        if (isNext) {
+          activeImgIndex++;
+        } else {
+          activeImgIndex = activeImgIndex
+            ? activeImgIndex - 1
+            : sliderImages.length - 1;
+        }
+
+        activeImgIndex = activeImgIndex % sliderImages.length;
+        sliderImages.item(activeImgIndex).classList.add("active");
+        sliderContainer.style.transform = `translateX(-${
+          activeImgIndex * imgWidht
+        }px)`;
+        changeText();
+      }
+
+      function changeText() {
+        activeNumberEl.textContent = activeImgIndex + 1;
+      }
+    </script>
+  </body>
+</html>

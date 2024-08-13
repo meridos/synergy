@@ -1,0 +1,276 @@
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Кейс-задача №2</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      main {
+        max-width: 300px;
+      }
+      .hide {
+        display: none;
+      }
+      input[type="number"] {
+        width: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <form onsubmit="sendForm(event)">
+        <fieldset>
+          <legend>Дата рождения</legend>
+          <label id="day-label"
+            >День: <input id="day" type="number" min="1" max="31" required
+          /></label>
+          <label id="month-label"
+            >Месяц: <input id="month" type="number" min="1" max="12" required
+          /></label>
+          <label id="year-label"
+            >Год: <input id="year" type="number" min="0" required
+          /></label>
+
+          <button id="submit" type="submit">Далее</button>
+          <p id="result"></p>
+        </fieldset>
+      </form>
+    </main>
+
+    <script type="text/javascript">
+      const dayLabel = document.getElementById("day-label");
+      const dayField = document.getElementById("day");
+      const monthLabel = document.getElementById("month-label");
+      const monthField = document.getElementById("month");
+      const yearLabel = document.getElementById("year-label");
+      const yearField = document.getElementById("year");
+      const submitBtn = document.getElementById("submit");
+      const result = document.getElementById("result");
+      const form = document.forms[0];
+
+      // Все элементы которые могут отображаться или нет
+      const allDynamicElements = new Set([
+        dayLabel,
+        dayField,
+        monthLabel,
+        monthField,
+        yearLabel,
+        yearField,
+        submitBtn,
+        result,
+      ]);
+      // Шаги формы с отображаемыми элементами
+      const stepsShowed = [
+        new Set([dayLabel, dayField, submitBtn]),
+        new Set([monthLabel, monthField, submitBtn]),
+        new Set([yearLabel, yearField, submitBtn]),
+        new Set([result]),
+      ];
+
+      let activeStep = 0;
+
+      changeElementsShowed(stepsShowed[activeStep]);
+
+      // Изменение отображения элеметов DOM дерева
+      function changeElementsShowed(elementsShowed) {
+        for (let element of allDynamicElements) {
+          if (elementsShowed.has(element)) {
+            element.classList.remove("hide");
+            element.disabled = false;
+          } else {
+            element.classList.add("hide");
+            element.disabled = true;
+          }
+        }
+      }
+
+      function sendForm(e) {
+        e.preventDefault();
+
+        // Смена активного шага на следующий, пока все не будут пройдены
+        if (stepsShowed.length > activeStep) {
+          activeStep++;
+          changeElementsShowed(stepsShowed[activeStep]);
+        }
+
+        // На последнем шаге - вывод введенных данных
+        if (activeStep === stepsShowed.length - 1) {
+          renderResultContent();
+        }
+        // Смена названия на предпоследнем шаге, т.к. две кнопки отправки не может быть и приходится менять одну
+        else if (activeStep === stepsShowed.length - 2) {
+          submitBtn.textContent = "Отправить";
+        }
+      }
+
+      function renderResultContent() {
+        const dateOfBirth = new Date(
+          yearField.value,
+          monthField.value - 1,
+          dayField.value
+        );
+
+        result.innerText = [
+          `${numberWithZero(dayField.value)}.${numberWithZero(
+            monthField.value
+          )}.${yearField.value}`,
+          getDayOfWeek(dateOfBirth),
+          (isLeapYear(yearField.value) ? "" : "не ") + "високосный год",
+          howOldNow(dateOfBirth),
+        ].join("\n");
+
+        sendDateOfBithToConsole(dateOfBirth);
+      }
+
+      function numberWithZero(number) {
+        return ("0" + number).slice(-2);
+      }
+
+      function getDayOfWeek(date = new Date()) {
+        const dateFormat = new Intl.DateTimeFormat("ru-RU", {
+          weekday: "long",
+        });
+
+        return dateFormat.format(date);
+      }
+
+      function isLeapYear(year) {
+        return new Date(year, 1, 29).getMonth() === 1;
+      }
+
+      function howOldNow(date = new Date()) {
+        const now = new Date();
+
+        let age = now.getFullYear() - date.getFullYear();
+
+        if (
+          (now.getMonth() === date.getMonth() &&
+            now.getDate() < date.getDate()) ||
+          now.getMonth() < date.getMonth()
+        ) {
+          age--;
+        }
+
+        return age;
+      }
+
+      function sendDateOfBithToConsole(date = new Date()) {
+        const CHAR_WIDTH = 7; // Ширина знаков для каждого числа
+        const CHAR_HEIGHT = 9; // Высота знаков для каждого числа
+        const SIGN = "*"; // Символ рисования числа
+        const EMPTY_SIGN = " "; // Символ пустоты в числе
+        const CHAR_SEPARATOR = "  "; // Отступ между числами без пробелов
+        const CHARS_SEPARATOR = "  "; // Дополнительный отступ между числами с пробелом
+
+        // Приводим дату к формату дд мм гггг
+        const dateOfBirthFormatted = `${numberWithZero(
+          date.getDate()
+        )} ${numberWithZero(date.getMonth() + 1)} ${date.getFullYear()}`;
+        const centerIndex = Math.floor(CHAR_HEIGHT / 2); // Получение индекса среднего ряда знаков
+
+        // Класс для работы с матрицой числа
+        class CharMatrix {
+          constructor(char) {
+            this.char = char;
+            // Создание матрицы знаков 7x9
+            this.matrix = new Array(CHAR_HEIGHT)
+              .fill("")
+              .map(() => new Array(CHAR_WIDTH).fill(EMPTY_SIGN));
+
+            // Обертки для простоты рисования
+            // Принцип рисования основан на семисегментном индикаторе https://ru.wikipedia.org/wiki/%D0%A1%D0%B5%D0%BC%D0%B8%D1%81%D0%B5%D0%B3%D0%BC%D0%B5%D0%BD%D1%82%D0%BD%D1%8B%D0%B9_%D0%B8%D0%BD%D0%B4%D0%B8%D0%BA%D0%B0%D1%82%D0%BE%D1%80
+            const a = () => this.fillH(0);
+            const b = () => this.fillVT(CHAR_WIDTH - 1);
+            const c = () => this.fillVB(CHAR_WIDTH - 1);
+            const d = () => this.fillH(CHAR_HEIGHT - 1);
+            const e = () => this.fillVB(0);
+            const f = () => this.fillVT(0);
+            const g = () => this.fillH(centerIndex);
+
+            // Карта рисования по каждой цифре 0-9
+            this.charsMap = [
+              [a, b, c, d, e, f],
+              [b, c],
+              [a, b, d, e, g],
+              [a, b, c, d, g],
+              [b, c, f, g],
+              [a, c, d, e, f, g],
+              [a, c, d, e, f, g],
+              [a, b, c],
+              [a, b, c, d, e, f, g],
+              [a, b, c, d, f, g],
+            ];
+          }
+
+          /*
+          Заполнение матрицы горизонтального ряда
+          */
+          fillH(r) {
+            this.matrix[r] = [
+              EMPTY_SIGN,
+              ...new Array(CHAR_WIDTH - 2).fill(SIGN),
+              EMPTY_SIGN,
+            ];
+          }
+
+          /*
+          Заполнение матрицы вертикальной колонки верхней половины
+          */
+          fillVT(c) {
+            for (let i = 1; i < CHAR_HEIGHT - centerIndex; i++) {
+              this.matrix[i][c] = SIGN;
+            }
+          }
+
+          /*
+          Заполнение матрицы вертикальной колонки нижней половины
+          */
+          fillVB(c) {
+            for (let i = centerIndex + 1; i < CHAR_HEIGHT - 1; i++) {
+              this.matrix[i][c] = SIGN;
+            }
+          }
+
+          /*
+          Получение заполненной знаками матрицы числа
+          */
+          getCharMatrix() {
+            if (this.char === " ") {
+              return new Array(CHAR_HEIGHT).fill(CHARS_SEPARATOR.split(""));
+            } else {
+              this.charsMap[this.char].forEach((f) => f());
+            }
+
+            return this.matrix;
+          }
+        }
+
+        const charsMatrix = dateOfBirthFormatted
+          .split("")
+          .map((v) => new CharMatrix(v).getCharMatrix());
+
+        // Собираем вме матрицы чисел в текст
+        let result = new Array(CHAR_HEIGHT).fill("");
+
+        // Проход по всем матрицам и рядам
+        for (let rowIndex = 0; rowIndex < CHAR_HEIGHT; rowIndex++) {
+          for (let charIndex = 0; charIndex < charsMatrix.length; charIndex++) {
+            const matrix = charsMatrix[charIndex];
+
+            // В один ряд добавляем из каждой матрицы по индексу этого ряда
+            result[rowIndex] += matrix[rowIndex].join("");
+
+            // Добавляем отступ между числами
+            if (charIndex != charsMatrix.length - 1) {
+              result[rowIndex] += CHAR_SEPARATOR;
+            }
+          }
+        }
+
+        // Строки собраны, объединяем ряды
+        result = result.join("\n");
+
+        console.log(result);
+      }
+    </script>
+  </body>
+</html>
